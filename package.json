@@ -1,0 +1,26 @@
+{
+  "name": "bike-challenge",
+  "version": "1.0.0",
+  "description": "Bike share is a collection of smart contracts to facilitate the creation of a bicycle sharing dapp.",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isEvrythngTkn/bike-challenge.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/isEvrythngTkn/bike-challenge/issues"
+  },
+  "homepage": "https://github.com/isEvrythngTkn/bike-challenge#readme",
+  "dependencies": {
+    "openzeppelin-solidity": "^1.12.0"
+  }
+}
