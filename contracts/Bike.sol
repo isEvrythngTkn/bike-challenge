@@ -31,18 +31,20 @@ contract Bike is Ownable {
 
   function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData) public {
     Token t = Token(_token);
+    require(_value == rentalFee * 3);
     require(t.transferFrom(_from,  this, _value));
     payers[_from] += _value;
-    // rent them the bike
+    rent(_from);
   }
 
-  // temporary
-  function rent() public {
-    renter = msg.sender;
+  function rent(address _renter) internal {
+    // require that the bike is available to be rented
+    renter = _renter;
     emit Rent(msg.sender);
   }
 
   function transferBike(address newRenter) public isRenter {
+    // require that the bike rental time has not elapsed
     renter = newRenter;
   }
 }
