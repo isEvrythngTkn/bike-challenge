@@ -1,11 +1,11 @@
 const Bike = artifacts.require('./Bike.sol');
 const BikeCoin = artifacts.require('./BikeCoin.sol');
+const BikeCoinCrowdsale = artifacts.require("./BikeCoinCrowdsale");
 
 const { 
   RENTAL_FEE,
   RENTAL_TIME_IN_MINUTES 
 } = require('../constants');
-
 
 //const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -49,9 +49,25 @@ contract('Bike', function(accounts) {
     assert.equal(expected, newRenter);
   });
 
-  // it('should let the renter transfer tokens to us', async () => {
+  it('should let the renter transfer tokens to us', async () => {
+    // get the coins
+    const crowdSaleInstance = await BikeCoinCrowdsale.deployed();
+    const coinInstance = await BikeCoin.deployed();
+    const bike = await Bike.deployed();
 
-  // });
+    const renter = accounts[2];
+    const decimals = await coinInstance.decimals();
+    await crowdSaleInstance.sendTransaction({ from: renter, value: web3.toWei(1, "ether")});
+
+    // spend them coins
+    const expected = RENTAL_FEE;
+    await coinInstance.approveAndCall(bike.address, RENTAL_FEE, 'extra', { from: renter });
+
+    const contractBalance = await coinInstance.balanceOf.call(bike.address);
+    const balance = await bike.payers.call(renter);
+    assert.equal(RENTAL_FEE, balance.toNumber());
+    assert.equal(RENTAL_FEE, contractBalance);
+  });
 
   // it should not allow others to rent the bike when it is already rented
 
