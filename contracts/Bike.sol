@@ -56,7 +56,8 @@ contract Bike is Ownable {
     // if time has elapsed, don't refund their escrow
     Token t = Token(tokenContract);
     uint amount = rentalFee * 2;
-    t.transfer(renter, amount);
+    require(t.transfer(renter, amount));
+    renter = address(0);
     isRented = false;
   }
 

@@ -13,7 +13,7 @@ let crowdSaleInstance;
 let bike;
 let renter;
 let decimals;
-//const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 contract('Bike', function(accounts) {
 
@@ -59,6 +59,7 @@ contract('Bike', function(accounts) {
   });
 
   // these tests depend on the previous one
+  // should probably change that, but later...
   it("should update the renter value after being rented", async () => {
     const expected = renter;
     const newRenter = await bike.renter();
@@ -97,6 +98,18 @@ contract('Bike', function(accounts) {
     await bike.returnBike({ from: renter });
     const newRenterBalance = await coinInstance.balanceOf.call(renter);
     assert.equal(expectedRenterBalance, newRenterBalance.toNumber());
+  });
+
+  it("should have reset the renter value to null", async () => {
+    const expected = ZERO_ADDRESS;
+    const renter = await bike.renter();
+    assert.equal(expected, renter);
+  });
+
+  it("should reset isRented to false", async () => {
+    const expected = false;
+    const rented = await bike.isRented();
+    assert.equal(expected, rented);
   });
 
   // it should not allow others to rent the bike when it is already rented
