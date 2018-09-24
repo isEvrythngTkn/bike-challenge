@@ -73,7 +73,7 @@ contract('Bike', function(accounts) {
     }
   });
 
-  it('should let the renter transfer tokens to us', async () => {
+  it('should let the renter transfer tokens to us and rent the bike', async () => {
     const expected = ESCROW_AMOUNT;
     await coinInstance.approveAndCall(bike.address, ESCROW_AMOUNT, '', { from: renter });
     const contractBalance = await coinInstance.balanceOf.call(bike.address);
@@ -135,7 +135,9 @@ contract('Bike', function(accounts) {
 
     const contractBalance = await coinInstance.balanceOf.call(bike.address);
     const userBalance = await coinInstance.balanceOf.call(secondRenter);
+    const currentRenter = await bike.renter();
     assert.equal(ESCROW_AMOUNT + initialBalance.toNumber(), contractBalance.toNumber());
+    assert.equal(secondRenter, currentRenter);
   });
 
   it("should not allow others to rent the bike when it is already rented", async () => {
