@@ -1,0 +1,7 @@
+const RENTAL_FEE = 3000;
+const RENTAL_TIME_IN_MINUTES = 360;
+
+module.exports = {
+  RENTAL_FEE,
+  RENTAL_TIME_IN_MINUTES
+};

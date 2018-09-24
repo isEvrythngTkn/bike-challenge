@@ -1,4 +1,11 @@
 const Bike = artifacts.require('./Bike.sol');
+const BikeCoin = artifacts.require('./BikeCoin.sol');
+
+const { 
+  RENTAL_FEE,
+  RENTAL_TIME_IN_MINUTES 
+} = require('../constants');
+
 
 //const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -11,14 +18,14 @@ contract('Bike', function(accounts) {
   });
 
   it("should have a rental fee of 3000 BIKE", async () => {
-    const expected = 3000;
+    const expected = RENTAL_FEE;
     const bike = await Bike.deployed();
     const rentalFee = await bike.rentalFee();
     assert.equal(expected, rentalFee);
   });
 
-  it("should have a rental time limit of 360 minutes", async () => {
-    const expected = 360;
+  it(`should have a rental time limit of ${RENTAL_TIME_IN_MINUTES} minutes`, async () => {
+    const expected = RENTAL_TIME_IN_MINUTES;
     const bike = await Bike.deployed();
     const rentalTimeInMinutes = await bike.rentalTimeInMinutes();
     assert.equal(expected, rentalTimeInMinutes);
@@ -42,6 +49,10 @@ contract('Bike', function(accounts) {
     assert.equal(expected, newRenter);
   });
 
+  // it('should let the renter transfer tokens to us', async () => {
+
+  // });
+
   // it should not allow others to rent the bike when it is already rented
 
   // it should require 3x the rental price in order to rent the bike
@@ -54,3 +65,21 @@ contract('Bike', function(accounts) {
 
   // it should burn or withhold the escrowed credits if the time limit is surpassed
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
