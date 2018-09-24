@@ -90,9 +90,17 @@ contract('Bike', function(accounts) {
     assert.equal(expected, balance.toNumber());
   });
 
+  it("should return escrowed credits minus rental fee when bike is properly returned", async () => {
+    const initialRenterBalance = await coinInstance.balanceOf.call(renter);
+    const transferAmount = RENTAL_FEE * 2;
+    const expectedRenterBalance = initialRenterBalance.toNumber() + transferAmount;
+    await bike.returnBike({ from: renter });
+    const newRenterBalance = await coinInstance.balanceOf.call(renter);
+    assert.equal(expectedRenterBalance, newRenterBalance.toNumber());
+  });
+
   // it should not allow others to rent the bike when it is already rented
 
-  // it should return the deposit if returned within the time limit
 
   // it should burn or withhold the escrowed credits if the time limit is surpassed
 });

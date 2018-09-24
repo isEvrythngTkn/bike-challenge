@@ -8,6 +8,8 @@ contract Bike is Ownable {
   uint public rentalFee;
   uint public rentalTimeInMinutes;
   mapping (address => uint256) public payers;
+  bool public isRented;
+  address public tokenContract;
 
   event Rent(address renter); // time too
 
@@ -24,9 +26,15 @@ contract Bike is Ownable {
     _;
   }
 
-  constructor(uint _rentalFee, uint _rentalTimeInMinutes) {
+  modifier bikeIsRented() {
+    require(isRented);
+    _;
+  }
+
+  constructor(uint _rentalFee, uint _rentalTimeInMinutes, address _tokenContract) {
     rentalFee = _rentalFee;
     rentalTimeInMinutes = _rentalTimeInMinutes;
+    tokenContract = _tokenContract;
   }
 
   function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData) public {
@@ -40,11 +48,38 @@ contract Bike is Ownable {
   function rent(address _renter) internal {
     // require that the bike is available to be rented
     renter = _renter;
+    isRented = true;
     emit Rent(msg.sender);
   }
 
-  function transferBike(address newRenter) public isRenter {
+  function returnBike() public isRenter bikeIsRented {
+    // if time has elapsed, don't refund their escrow
+    Token t = Token(tokenContract);
+    uint amount = rentalFee * 2;
+    t.transfer(renter, amount);
+    isRented = false;
+  }
+
+  function transferBike(address newRenter) public isRenter bikeIsRented {
     // require that the bike rental time has not elapsed
     renter = newRenter;
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

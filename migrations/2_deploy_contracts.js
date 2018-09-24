@@ -13,10 +13,7 @@ module.exports = function(deployer, network, accounts) {
   const rate = new web3.BigNumber(314159);
   const wallet = accounts[1];
 
-  return deployer
-    .then(() => {
-      deployer.deploy(Bike, rentalFee, rentalTimeInMinutes);
-    })
+  return deployer    
     .then(() => {
       return deployer.deploy(BikeCoin);
     })
@@ -29,7 +26,11 @@ module.exports = function(deployer, network, accounts) {
       );
     })
     .then(() => {
+      return deployer.deploy(Bike, rentalFee, rentalTimeInMinutes, BikeCoin.address);
+    })
+    .then(() => {
       bikeCoinInstance = BikeCoin.at(BikeCoin.address);
       bikeCoinInstance.transferOwnership(BikeCoinCrowdsale.address);
     });
+    
 };
