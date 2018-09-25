@@ -11,7 +11,7 @@ module.exports = function(deployer, network, accounts) {
   const rentalFee = RENTAL_FEE;
   const rentalTimeInMinutes = RENTAL_TIME_IN_MINUTES;
   const rate = new web3.BigNumber(314159);
-  const wallet = accounts[1];
+  const wallet = accounts[0];
 
   return deployer    
     .then(() => {
