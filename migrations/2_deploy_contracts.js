@@ -4,13 +4,14 @@ const Bike = artifacts.require('./Bike.sol');
 
 const { 
   RENTAL_FEE,
-  RENTAL_TIME_IN_MINUTES
+  RENTAL_TIME_IN_MINUTES,
+  RATE
 } = require('../constants');
 
 module.exports = function(deployer, network, accounts) {
   const rentalFee = RENTAL_FEE;
   const rentalTimeInMinutes = RENTAL_TIME_IN_MINUTES;
-  const rate = new web3.BigNumber(314159);
+  const rate = new web3.BigNumber(RATE);
   const wallet = accounts[0];
 
   return deployer    

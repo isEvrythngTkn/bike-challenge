@@ -5,7 +5,8 @@ const BikeCoinCrowdsale = artifacts.require("./BikeCoinCrowdsale");
 const { 
   RENTAL_FEE,
   RENTAL_TIME_IN_MINUTES,
-  ESCROW_AMOUNT
+  ESCROW_AMOUNT,
+  RATE
 } = require('../constants');
 const { timeTravel } = require('./helper.js');
 
@@ -18,17 +19,29 @@ let coinRecipient;
 let decimals;
 let transferee;
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+const rentalFee = RENTAL_FEE;
+const rentalTimeInMinutes = RENTAL_TIME_IN_MINUTES;
+const rate = new web3.BigNumber(RATE);
 
 contract('Bike', function(accounts) {
 
-  before(async () => {
-    crowdSaleInstance = await BikeCoinCrowdsale.deployed();
-    coinInstance = await BikeCoin.deployed();
-    bike = await Bike.deployed();
+  beforeEach(async () => {
+    const wallet = accounts[0];
+    coinInstance = await BikeCoin.new();
+    crowdSaleInstance = await BikeCoinCrowdsale.new(
+      rate,
+      wallet,
+      coinInstance.address
+    );
+    bike = await Bike.new(rentalFee, rentalTimeInMinutes, coinInstance.address);
+
+    await coinInstance.transferOwnership(crowdSaleInstance.address);
 
     renter = accounts[2];
+    const bal = await web3.eth.getBalance(renter);
     secondRenter = accounts[5];
     decimals = await coinInstance.decimals();
+
     await crowdSaleInstance.sendTransaction({ from: renter, value: web3.toWei(1, "ether")});
     await crowdSaleInstance.sendTransaction({ from: secondRenter, value: web3.toWei(1, "ether")});
   });
@@ -60,20 +73,19 @@ contract('Bike', function(accounts) {
   });
 
   it("should require 3x the rental price in order to rent the bike", async () => {
-    // for some reason if you only subtract 1000 from ESCROW_AMOUNT
-    // this test fails...
+    // @todo: for some reason if you only subtract 1000 from ESCROW_AMOUNT this test fails...
     const tooLittle = ESCROW_AMOUNT / 2;
+    const initialBikeContractBalance = await coinInstance.balanceOf.call(bike.address);
     try {
-      const initialRenterBalance = await coinInstance.balanceOf.call(bike.address);
       await coinInstance.approveAndCall(bike.address, tooLittle, '', { from: renter });
       assert.ok(false);
     } catch (err) {
       const balance = await coinInstance.balanceOf.call(bike.address);
-      assert.equal(0, balance.toNumber());
+      assert.equal(initialBikeContractBalance, balance.toNumber());
     }
   });
 
-  it('should let the renter transfer tokens to us and rent the bike', async () => {
+  it('should let someone transfer tokens to us and rent the bike', async () => {
     const expected = ESCROW_AMOUNT;
     await coinInstance.approveAndCall(bike.address, ESCROW_AMOUNT, '', { from: renter });
     const contractBalance = await coinInstance.balanceOf.call(bike.address);
@@ -81,9 +93,8 @@ contract('Bike', function(accounts) {
     assert.equal(ESCROW_AMOUNT, contractBalance);
   });
 
-  // these tests depend on the previous one
-  // should probably change that, but later...
   it("should update the renter value after being rented", async () => {
+    await coinInstance.approveAndCall(bike.address, ESCROW_AMOUNT, '', { from: renter });
     const expected = renter;
     const newRenter = await bike.renter();
     assert.equal(expected, newRenter);
@@ -91,6 +102,7 @@ contract('Bike', function(accounts) {
   
   it("should let the current renter transfer the rented bike to another address", async () => {
     transferee = accounts[4];
+    await coinInstance.approveAndCall(bike.address, ESCROW_AMOUNT, '', { from: renter });
     await bike.transferBike(transferee, { from: renter });
     const newRenter = await bike.renter();
     assert.equal(transferee, newRenter);
@@ -106,12 +118,13 @@ contract('Bike', function(accounts) {
   });
 
   it("should return escrowed credits minus rental fee when bike is properly returned", async () => {
-    // not getting exactly the right number back for newRenterBalance. 
-    // It's off by something like 2e16    
+    // @todo: not getting exactly the right number back for newRenterBalance. 
+    // e.g. 2.8115900000000002e+23 vs 2.81159e+23
+    await coinInstance.approveAndCall(bike.address, ESCROW_AMOUNT, '', { from: renter });
     const initialRenterBalance = await coinInstance.balanceOf.call(renter);
     const transferAmount = RENTAL_FEE * 2;
-    const expectedRenterBalance = initialRenterBalance.toNumber() + RENTAL_FEE * 1.9;
-    await bike.returnBike({ from: transferee });
+    const expectedRenterBalance = initialRenterBalance.toNumber() + (RENTAL_FEE * 1.9);
+    await bike.returnBike({ from: renter });
     const newRenterBalance = await coinInstance.balanceOf.call(renter);
     assert.isAtLeast(newRenterBalance.toNumber(), expectedRenterBalance );
   });
@@ -129,6 +142,10 @@ contract('Bike', function(accounts) {
   });
 
   it("should rent the bike again", async () => {
+    // rent the bike first
+    await coinInstance.approveAndCall(bike.address, ESCROW_AMOUNT, '', { from: renter });
+    await bike.returnBike({ from: renter });
+
     const expected = ESCROW_AMOUNT;
     const initialBalance = await coinInstance.balanceOf(bike.address);
     await coinInstance.approveAndCall(bike.address, ESCROW_AMOUNT, '', { from: secondRenter });
@@ -152,6 +169,7 @@ contract('Bike', function(accounts) {
   // For the time travel bit I used this resource:
   // https://medium.com/coinmonks/testing-solidity-with-truffle-and-async-await-396e81c54f93
   it("should not return credits if the rental time limit has passed", async () => {
+    await coinInstance.approveAndCall(bike.address, ESCROW_AMOUNT, '', { from: secondRenter });
     await timeTravel(86400);
     const expected = await coinInstance.balanceOf.call(secondRenter);
     await bike.returnBike({ from: secondRenter });
