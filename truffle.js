@@ -13,6 +13,7 @@ module.exports = {
     },
     ropsten: {
       provider: function() {
+        // Leaving in the INFURA key becuase it's only a demo.
         return new HDWalletProvider(mnemonic, "https://ropsten.infura.io/v3/5e1f58ca62fb483cb12de916d30fd8e7")
       },
       network_id: 3
