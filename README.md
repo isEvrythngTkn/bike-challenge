@@ -3,45 +3,22 @@
 
 Bike share is a collection of smart contracts to facilitate the creation of a bicycle sharing dapp.
 
-
-## Instructions
-
-Fork this repository and complete the requirements. Feel free to complete the bonus tasks if you have time!
-
 ## Requirements
+- NodeJS v9+
+- Truffle
+- Ganache
 
-In this application, a user can rent a bike for an alloted amount of time using a credits.
+## Installation
+1. Clone the repo
+2. From the root directory of the project, run `npm install`
 
-When renting his bike, a user needs to put up 3 times his credits as escrow, and will get it back when he returns the bike.
+## Test Suite
+1. Start ganache
+2. Run `truffle test` from the project root
 
-A user should be able to purchase credits using Ether at a rate of 1 ETH = 31415.9 BIKE credits
-
-The smart contract should be controlled by the creator
-
-## Bonus points
-
-- Implement unit tests using either Solidity or Javascript
-
-- Add a "transfer rented bike", "transfer credit" functionnality
-
-- If the user does not return his bike after a certain amount of time, his escrowed credits should be slashed
-
-- Remove the credit functionnality from whithin the Bike.sol contract and move it to its own Token Contract
-
-- Dazzle us!
-
-
-
-## Submission
-
-Please submit the URL to your github repository to our hiring manager.
-
-Include in the email the answers to these questions:
-
-- How did you find the assignment?
-- How long did it take you to complete?
-- What would you have done differently?
-- Other comments?
-
-
-If you have any questions, please email `patrick@vanbex.com`
+## Workflow
+1. Migrate the contracts.
+2. Send some ETH to the crowdsale contract, which in turn will give you BIKE in the token contract.
+3. Use the approveAndCall method of the BIKE token contract to rent a bike. Pass the address of the Bike contract, along with the amount required for escrow (in this case 3 * RENTAL_FEE = 9000 BIKE). The bike is now rented to that address.
+4. Now that the bike is rented, you can transfer the bike using the Bike contract.
+5. Whoever is the current renter can then return the bike. If it is returned within the time limit, 2/3 of the escrowed BIKE credits are returned to the payer's address. If it is past the rental time limit, then the BIKE credits are retained by the Bike contract.
